@@ -45,28 +45,26 @@ function convertTimeToIST(time) {
   }
 
   hours = (hours + 5) % 24; // Adding 5 hours for IST offset and handling overflow
-  // console.log(hours)
   let minutes = parseInt(minute, 10) + 30; // Adding 30 minutes for IST offset
   if (minutes >= 60) {
     hours++; // Increment hour if minutes exceed 60
     minutes %= 60; // Reset minutes
   }
 
-  // console.log(hours, minutes , time)
-
   let formattedHour = hours % 12 || 12; // Convert hour to 12-hour format
-  const formattedMinute = minutes < 10 ? "0" + minutes : minutes;
   let period = hours >= 12 ? "pm" : "am"; // Determine if it's AM or PM
-  // Special handling for midnight and noon
+
+  // Special handling for midnight
   if (hours === 24 && minutes === 0) {
     formattedHour = 12;
     period = "am";
   } else if (hours === 12 && minutes === 0) {
-    period = "pm";
+    period = "pm"; // Adjust 12:00 am to pm for IST
   }
-  formattedHour = formattedHour < 10 ? "0" + formattedHour : formattedHour; // Add leading zero if necessary
+
+  formattedHour = String(formattedHour).padStart(2, "0");
+  const formattedMinute = String(minutes).padStart(2, "0");
   const istTime = `${formattedHour}:${formattedMinute} ${period}`;
-  // console.log(time,istTime)
   return istTime;
 }
 
@@ -74,22 +72,18 @@ function convertTimeToUTC(time) {
   const [hour, minute, meridiem] = time.split(/:| /);
   let hours = parseInt(hour, 10);
 
-  // Handle special cases for 12 am and 12:30 am
-  if (hours === 12 && minute === "00" && meridiem.toLowerCase() === "am") {
-    hours = 19; // 12 am becomes 6 pm in UTC
-  } else if (
+  if (
     hours === 12 &&
-    minute === "30" &&
+    (minute === "00" || minute === "30") &&
     meridiem.toLowerCase() === "am"
   ) {
-    hours = 19; // 12:30 am becomes 7 pm in UTC
+    hours = 19; // 12 am becomes 6 pm in UTC
   } else {
-    // Convert PM hours to 24-hour format
     if (meridiem.toLowerCase() === "pm" && hours !== 12) {
       hours += 12;
     }
-    // Subtract 5 hours for UTC offset and handle underflow
     hours = (hours - 5 + 24) % 24;
+    // Subtract 5 hours for UTC offset and handle underflow
   }
 
   let minutes = parseInt(minute, 10) - 30; // Subtract 30 minutes for UTC offset
@@ -99,9 +93,10 @@ function convertTimeToUTC(time) {
   }
 
   let formattedHour = hours % 12 || 12; // Convert hour to 12-hour format
-  const formattedMinute = minutes < 10 ? "0" + minutes : minutes;
   const period = hours >= 12 ? "pm" : "am"; // Determine if it's AM or PM
-  formattedHour = formattedHour < 10 ? "0" + formattedHour : formattedHour; // Add leading zero if necessary
+
+  formattedHour = String(formattedHour).padStart(2, "0");
+  const formattedMinute = String(minutes).padStart(2, "0");
   const utcTime = `${formattedHour}:${formattedMinute} ${period}`;
   return utcTime;
 }
